@@ -5,7 +5,8 @@
 #   launch.sh            normal start
 #   launch.sh --debug    log Wine's errors, warnings and loaded DLLs too (for bug reports)
 #   launch.sh --hud      show Apple's Metal performance HUD (frame rate, GPU time)
-#   launch.sh --online   start without ReSkate's --offline flag (needs Windows Steam in the environment)
+#   launch.sh --online   start without ReSkate's --offline flag, and start Windows Steam (steam.sh) if it is
+#                        installed in the environment
 
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -43,10 +44,16 @@ alert() { # alert "message": a macOS dialog, since the app has no terminal
 [ -f "$game/ReSkateLauncher.exe" ] || { alert "ReSkate is not installed in $game. Run the ReSkate for Mac installer again."; exit 1; }
 arch -x86_64 /usr/bin/true 2>/dev/null || { alert "Rosetta 2 is missing. Run the ReSkate for Mac installer again; it installs it."; exit 1; }
 
+# Online needs Steam running and signed in; ReSkate's launcher shows whether it is.
+if [ "${#reskate_args[@]}" -eq 0 ] && steam_installed; then
+    echo "Starting Windows Steam (log: $LOG_DIR/steam-*.log)" >> "$LOG_FILE"
+    "$HERE/steam.sh" >/dev/null 2>&1 &
+fi
+
 cd "$game" || exit 1
 wine_env
 started=$(date +%s)
-"$WINE_BIN/wine64" "$game/ReSkateLauncher.exe" "${reskate_args[@]}" >> "$LOG_FILE" 2>&1
+"$WINE_BIN/wine64" "$game/ReSkateLauncher.exe" ${reskate_args[@]+"${reskate_args[@]}"} >> "$LOG_FILE" 2>&1
 status=$?
 wineserver_wait
 elapsed=$(( $(date +%s) - started ))

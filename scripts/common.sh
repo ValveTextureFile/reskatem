@@ -29,7 +29,7 @@ PRODUCT="ReSkate for Mac"
 BASE_DIR="$HOME/Library/Application Support/ReSkate for Mac"
 ENGINE_DIR="$BASE_DIR/engine"
 WINE_BIN="$ENGINE_DIR/Game Porting Toolkit.app/Contents/Resources/wine/bin"
-PREFIX_DIR="$BASE_DIR/prefix"                 # the Windows environment (WINEPREFIX)
+PREFIX_DIR="${RESKATEM_PREFIX:-$BASE_DIR/prefix}"  # the Windows environment (WINEPREFIX)
 TOOLS_DIR="$BASE_DIR/tools"
 STATE_DIR="$BASE_DIR/state"                   # markers for finished steps and settings
 DEFAULT_GAME_DIR="$BASE_DIR/game"
@@ -143,4 +143,36 @@ wine_env() {
     if [ "${RESKATEM_DEBUG:-0}" = 1 ]; then export WINEDEBUG="+err,+warn,+loaddll"; else export WINEDEBUG="-all"; fi
 }
 wine() { wine_env; "$WINE_BIN/wine64" "$@"; }
+
+# ---- Windows Steam -----------------------------------------------------------------------------------------
+# Steam's browser (steamwebhelper, Chromium 126) delay-loads QueryUnbiasedInterruptTimePrecise from
+# api-ms-win-core-realtime-l1-1-1.dll. This Wine (7.7) lacks it, so the browser crashes on start and Steam never
+# shows its window. Wine resolves api-ms-* names internally, so libcef.dll is pointed at a same-length name
+# (xpi-...) and a forwarder DLL by that name is put beside it (built by tools/make-forwarder-dll.py).
+# Steam updates replace libcef.dll, so steam_cef_fix runs before Steam starts and while it runs.
+STEAM_DIR="$PREFIX_DIR/drive_c/Program Files (x86)/Steam"
+CEF_SHIM_NAME="xpi-ms-win-core-realtime-l1-1-1.dll"
+CEF_SHIM="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/steam/$CEF_SHIM_NAME"
+
+steam_installed() { [ -f "$STEAM_DIR/steam.exe" ] || [ -f "$STEAM_DIR/Steam.exe" ]; }
+
+# Fixes every 64-bit Steam browser folder; prints one line per folder it changed.
+steam_cef_fix() {
+    local dir lib
+    for dir in "$STEAM_DIR"/bin/cef/cef.*; do
+        lib="$dir/libcef.dll"
+        [ -f "$lib" ] || continue
+        file -b "$lib" | grep -q 'x86-64' || continue   # the shim is 64-bit; older 32-bit folders are unused
+        if LC_ALL=C grep -q -a -F 'api-ms-win-core-realtime-l1-1-1.dll' "$lib"; then
+            # Write a patched copy and swap it in, so a running browser keeps its old file.
+            perl -0777 -pe 's/api-ms-win-core-realtime-l1-1-1\.dll\0/xpi-ms-win-core-realtime-l1-1-1.dll\0/g' \
+                "$lib" > "$lib.reskatem" && mv -f "$lib.reskatem" "$lib" || { rm -f "$lib.reskatem"; return 1; }
+            echo "Patched $(basename "$dir")/libcef.dll"
+        fi
+        if ! cmp -s "$CEF_SHIM" "$dir/$CEF_SHIM_NAME"; then
+            cp "$CEF_SHIM" "$dir/$CEF_SHIM_NAME" || return 1
+            echo "Added $CEF_SHIM_NAME to $(basename "$dir")"
+        fi
+    done
+}
 wineserver_wait() { wine_env; "$WINE_BIN/wineserver" -w 2>/dev/null || true; }

@@ -253,7 +253,9 @@ cp "$downloads/launcher.json" "$STATE_DIR/launcher.json"
 # ---- 7. App ------------------------------------------------------------------------------------------------------
 step "Adding \"skate. (ReSkate)\" to Applications"
 mkdir -p "$BASE_DIR/bin"
-cp "$HERE/common.sh" "$HERE/launch.sh" "$HERE/diagnose.sh" "$HERE/uninstall.sh" "$BASE_DIR/bin/"
+cp "$HERE/common.sh" "$HERE/launch.sh" "$HERE/steam.sh" "$HERE/diagnose.sh" "$HERE/uninstall.sh" "$BASE_DIR/bin/"
+mkdir -p "$BASE_DIR/bin/steam"
+cp "$HERE/steam/$CEF_SHIM_NAME" "$BASE_DIR/bin/steam/"
 chmod +x "$BASE_DIR/bin/"*.sh
 mkdir -p "$HOME/Applications"
 rm -rf "$APP_PATH"
