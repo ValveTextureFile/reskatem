@@ -144,35 +144,55 @@ wine_env() {
 }
 wine() { wine_env; "$WINE_BIN/wine64" "$@"; }
 
-# ---- Windows Steam -----------------------------------------------------------------------------------------
-# Steam's browser (steamwebhelper, Chromium 126) delay-loads QueryUnbiasedInterruptTimePrecise from
-# api-ms-win-core-realtime-l1-1-1.dll. This Wine (7.7) lacks it, so the browser crashes on start and Steam never
-# shows its window. Wine resolves api-ms-* names internally, so libcef.dll is pointed at a same-length name
-# (xpi-...) and a forwarder DLL by that name is put beside it (built by tools/make-forwarder-dll.py).
-# Steam updates replace libcef.dll, so steam_cef_fix runs before Steam starts and while it runs.
-STEAM_DIR="$PREFIX_DIR/drive_c/Program Files (x86)/Steam"
-CEF_SHIM_NAME="xpi-ms-win-core-realtime-l1-1-1.dll"
-CEF_SHIM="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/steam/$CEF_SHIM_NAME"
+wineserver_wait() { wine_env; "$WINE_BIN/wineserver" -w 2>/dev/null || true; }
 
+# ---- Online (Windows Steam), experimental -------------------------------------------------------------------
+# Online play needs Windows Steam signed in, in the same Windows environment as the game. Steam does not work
+# on Game Porting Toolkit's Wine 7.7 (its browser crashes, and Wine 7.7 cannot tell Steam which program owns a
+# local connection, so Steam rejects its own window). online-setup.sh therefore builds a second, separate setup:
+# MetalSharp's Wine 11 runtime (which can host D3DMetal), the D3DMetal from Game Porting Toolkit 4 that the
+# runtime ships, and a copy of the game's Windows environment with Windows Steam in it. The offline setup above
+# is not changed. See STEAM-TESTING.md.
+ONLINE_DIR="${RESKATEM_ONLINE_DIR:-$BASE_DIR/online}"
+ONLINE_RUNTIME_VERSION="MetalSharp bundles, Wine 11.17"
+ONLINE_RUNTIME_URL="https://github.com/metalsharp/MetalSharp/releases/download/bundles/metalsharp-runtime.tar.zst"
+ONLINE_RUNTIME_SHA256="7c0ef15a528e3cafa3bdf7d88eac0849eefd84fbc692e19eb7cdcc134b7920c7"
+ONLINE_RUNTIME_DIR="$ONLINE_DIR/runtime"                     # unpacked runtime (wine/, d3dmetal-gptk4-beta2/)
+ONLINE_WINE_DIR="$ONLINE_RUNTIME_DIR/wine"
+ONLINE_PREFIX_DIR="$ONLINE_DIR/prefix"                       # copy of PREFIX_DIR, plus Windows Steam
+ONLINE_STATE_DIR="$ONLINE_DIR/state"                         # markers for finished online-setup steps
+STEAM_SETUP_URL="https://cdn.akamai.steamstatic.com/client/installer/SteamSetup.exe"
+STEAM_DIR="$ONLINE_PREFIX_DIR/drive_c/Program Files (x86)/Steam"
+STEAM_WRAPPER="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/steam/steamwebhelper.exe"
+
+online_ready() { [ -f "$ONLINE_STATE_DIR/ready" ] && [ -x "$ONLINE_WINE_DIR/bin/wine" ] && steam_installed; }
 steam_installed() { [ -f "$STEAM_DIR/steam.exe" ] || [ -f "$STEAM_DIR/Steam.exe" ]; }
 
-# Fixes every 64-bit Steam browser folder; prints one line per folder it changed.
-steam_cef_fix() {
-    local dir lib
+# The environment for the online setup. GnuTLS (HTTPS inside Wine) lives in the runtime's unix folder, so it
+# must be on the library path; the D3DMetal DLLs are Wine builtins there; atiadlxx=d as for wine_env.
+online_wine_env() {
+    export WINEPREFIX="$ONLINE_PREFIX_DIR"
+    export WINEESYNC=1
+    export ROSETTA_ADVERTISE_AVX=1
+    export DYLD_FALLBACK_LIBRARY_PATH="$ONLINE_WINE_DIR/lib/wine/x86_64-unix:$ONLINE_WINE_DIR/lib/external:$ONLINE_WINE_DIR/lib"
+    export WINEDLLOVERRIDES="d3d10,d3d11,d3d12,dxgi,nvapi64,nvngx-on-metalfx=b;atiadlxx=d"
+    if [ "${RESKATEM_DEBUG:-0}" = 1 ]; then export WINEDEBUG="+err,+warn,+loaddll"; else export WINEDEBUG="-all"; fi
+}
+online_wine() { online_wine_env; "$ONLINE_WINE_DIR/bin/wine" "$@"; }
+online_wineserver_wait() { online_wine_env; "$ONLINE_WINE_DIR/bin/wineserver" -w 2>/dev/null || true; }
+
+# Steam's window stays black on Wine 11 unless its browser runs with --in-process-gpu --disable-gpu, which
+# Steam cannot be told to pass. Each 64-bit browser folder gets the wrapper (tools/steamwebhelper-wrapper.c)
+# as steamwebhelper.exe, and Steam's own file becomes steamwebhelper.real.exe. Steam updates put their own
+# file back, so this runs before Steam starts and while it runs (steam.sh). Prints one line per change.
+steam_wrapper_fix() {
+    local dir exe
     for dir in "$STEAM_DIR"/bin/cef/cef.*; do
-        lib="$dir/libcef.dll"
-        [ -f "$lib" ] || continue
-        file -b "$lib" | grep -q 'x86-64' || continue   # the shim is 64-bit; older 32-bit folders are unused
-        if LC_ALL=C grep -q -a -F 'api-ms-win-core-realtime-l1-1-1.dll' "$lib"; then
-            # Write a patched copy and swap it in, so a running browser keeps its old file.
-            perl -0777 -pe 's/api-ms-win-core-realtime-l1-1-1\.dll\0/xpi-ms-win-core-realtime-l1-1-1.dll\0/g' \
-                "$lib" > "$lib.reskatem" && mv -f "$lib.reskatem" "$lib" || { rm -f "$lib.reskatem"; return 1; }
-            echo "Patched $(basename "$dir")/libcef.dll"
-        fi
-        if ! cmp -s "$CEF_SHIM" "$dir/$CEF_SHIM_NAME"; then
-            cp "$CEF_SHIM" "$dir/$CEF_SHIM_NAME" || return 1
-            echo "Added $CEF_SHIM_NAME to $(basename "$dir")"
-        fi
+        exe="$dir/steamwebhelper.exe"
+        [ -f "$exe" ] || continue
+        cmp -s "$STEAM_WRAPPER" "$exe" && continue
+        file -b "$exe" | grep -q 'x86-64' || continue   # the wrapper is 64-bit; 32-bit folders are unused
+        mv -f "$exe" "$dir/steamwebhelper.real.exe" && cp "$STEAM_WRAPPER" "$exe" || return 1
+        echo "Wrapped $(basename "$dir")/steamwebhelper.exe"
     done
 }
-wineserver_wait() { wine_env; "$WINE_BIN/wineserver" -w 2>/dev/null || true; }

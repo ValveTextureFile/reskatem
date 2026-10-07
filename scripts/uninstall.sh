@@ -24,6 +24,7 @@ confirm "Uninstall?" || { echo "Nothing was removed."; exit 0; }
 
 # Stop anything still running in the environment first.
 if [ -x "$WINE_BIN/wineserver" ]; then wine_env; "$WINE_BIN/wineserver" -k 2>/dev/null || true; fi
+if [ -x "$ONLINE_WINE_DIR/bin/wineserver" ]; then online_wine_env; "$ONLINE_WINE_DIR/bin/wineserver" -k 2>/dev/null || true; fi
 
 if [ "$game" = "$DEFAULT_GAME_DIR" ] && [ -f "$game/Skate.exe" ]; then
     size="$(du -sh "$game" 2>/dev/null | cut -f1)"

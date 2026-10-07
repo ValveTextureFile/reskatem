@@ -1,0 +1,44 @@
+name: Online test result (steam-testing branch)
+description: How far you got with online play through Windows Steam. Results that worked are just as useful.
+labels: ["online-test"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing online play. See [STEAM-TESTING.md](https://github.com/ValveTextureFile/reskatem/blob/steam-testing/STEAM-TESTING.md) for the steps.
+  - type: checkboxes
+    id: progress
+    attributes:
+      label: What worked?
+      description: Tick everything that worked for you.
+      options:
+        - label: online-setup.sh finished
+        - label: Steam's window drew (not black) and I could sign in
+        - label: The ReSkate launcher showed my Steam account name
+        - label: The game started with Steam running
+        - label: The server browser listed servers
+        - label: I could join a server and see other players
+  - type: textarea
+    id: what
+    attributes:
+      label: Where did it stop, and what did you see?
+      description: Error messages, what was on screen, anything unusual. Screenshots help a lot.
+    validations:
+      required: true
+  - type: input
+    id: mac
+    attributes:
+      label: Your Mac
+      description: Apple menu > About This Mac. The chip, memory and macOS version.
+      placeholder: "MacBook Pro M3, 18 GB, macOS 26.3"
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: |
+        Double-click **Collect Diagnostics.command**, then drag the zip it puts on your Desktop into this box.
+        On this branch it includes the Steam and online-setup logs. It contains no game files or logins.
+    validations:
+      required: false

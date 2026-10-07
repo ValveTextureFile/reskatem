@@ -41,6 +41,13 @@ check_file "D3DMetal" "$WINE_BIN/../lib/external/D3DMetal.framework/D3DMetal"
 [ -x "$WINE_BIN/wine64" ] && line "         $("$WINE_BIN/wine64" --version 2>&1 | head -1)"
 check_file "Windows environment" "$PREFIX_DIR/drive_c/windows"
 check_file "Visual C++ runtime" "$PREFIX_DIR/drive_c/windows/system32/msvcp140.dll"
+if [ -d "$ONLINE_DIR" ]; then
+    line "Online setup (experimental): $([ -f "$ONLINE_STATE_DIR/ready" ] && echo ready || echo not finished)"
+    check_file "  Wine 11 runtime ($ONLINE_RUNTIME_VERSION)" "$ONLINE_WINE_DIR/bin/wine"
+    check_file "  D3DMetal for Wine 11" "$ONLINE_WINE_DIR/lib/external/D3DMetal.framework/D3DMetal"
+    check_file "  Windows Steam" "$STEAM_DIR/steam.exe"
+    check_file "  Steam browser wrapper" "$STEAM_DIR/bin/cef/cef.win64/steamwebhelper.exe" "$(sha256_of "$STEAM_WRAPPER" 2>/dev/null)"
+fi
 line "Game folder: $game"
 pinned="$STATE_DIR/launcher.json"
 if [ -f "$pinned" ]; then
@@ -61,8 +68,8 @@ section "Running processes"
 # Only the game's own processes: Wine, its server, the launcher and Skate.exe.
 ps -axo pid,etime,command | grep -E '[w]ine64|[w]ineserver|[R]eSkateLauncher\.exe|[S]kate\.exe' | grep -v -- '-c ' | cut -c1-200 >> "$report" || line "(none)"
 
-# The newest installer, game and Steam logs, and ReSkate's own log.
-for pattern in install game steam; do
+# The newest installer, game, Steam and online-setup logs, and ReSkate's own log.
+for pattern in install game steam online-setup; do
     ls -1t "$LOG_DIR"/$pattern-*.log 2>/dev/null | head -3 | while read -r f; do cp "$f" "$work/logs/"; done
 done
 [ -f "$game/logs/ReSkate.log" ] && cp "$game/logs/ReSkate.log" "$work/logs/ReSkate.log"
