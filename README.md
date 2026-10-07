@@ -1,5 +1,8 @@
 # ReSkate for Mac
 
+> **You are on the `steam-testing` branch.** It is experimental work toward online play through Windows
+> Steam; see [STEAM-TESTING.md](STEAM-TESTING.md). To just play, use the `master` branch.
+
 Play **skate.** on an Apple Silicon Mac, offline and with mods, through
 [ReSkate](https://github.com/Dingo-Shenanigans/ReSkate). Free (except for the game itself): no CrossOver or other paid software.
 

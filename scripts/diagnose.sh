@@ -61,8 +61,8 @@ section "Running processes"
 # Only the game's own processes: Wine, its server, the launcher and Skate.exe.
 ps -axo pid,etime,command | grep -E '[w]ine64|[w]ineserver|[R]eSkateLauncher\.exe|[S]kate\.exe' | grep -v -- '-c ' | cut -c1-200 >> "$report" || line "(none)"
 
-# The newest installer and game logs, and ReSkate's own log.
-for pattern in install game; do
+# The newest installer, game and Steam logs, and ReSkate's own log.
+for pattern in install game steam; do
     ls -1t "$LOG_DIR"/$pattern-*.log 2>/dev/null | head -3 | while read -r f; do cp "$f" "$work/logs/"; done
 done
 [ -f "$game/logs/ReSkate.log" ] && cp "$game/logs/ReSkate.log" "$work/logs/ReSkate.log"
