@@ -132,10 +132,14 @@ game_dir() {
 # ---- Wine ----------------------------------------------------------------------------------------------
 # The environment the game runs in. ROSETTA_ADVERTISE_AVX lets x86 games that require AVX run under
 # Rosetta (macOS 15+). WINEDEBUG=-all keeps Wine quiet unless RESKATEM_DEBUG=1.
+# atiadlxx=d: D3DMetal presents the GPU as an AMD Radeon, and Wine's stand-in AMD driver library reports
+# version 22.20.19.16, so skate. refuses to start ("Please update your AMD Radeon driver") and then calls
+# an ADL function the stand-in lacks. Without the library the game skips its AMD driver checks.
 wine_env() {
     export WINEPREFIX="$PREFIX_DIR"
     export WINEESYNC=1
     export ROSETTA_ADVERTISE_AVX=1
+    export WINEDLLOVERRIDES="atiadlxx=d"
     if [ "${RESKATEM_DEBUG:-0}" = 1 ]; then export WINEDEBUG="+err,+warn,+loaddll"; else export WINEDEBUG="-all"; fi
 }
 wine() { wine_env; "$WINE_BIN/wine64" "$@"; }
