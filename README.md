@@ -74,7 +74,8 @@ files that changed.
 1. Double-click **Collect Diagnostics.command**. It saves a zip on your Desktop with your system details,
    what is installed (and whether each file checks out) and the recent logs, with your macOS account name
    replaced by `<you>`. It contains no game files and no Steam login.
-2. Share that zip when you ask for help.
+2. [Open an issue](https://github.com/ValveTextureFile/reskatem/issues/new?template=problem.yml) (a free GitHub
+   account is needed). The form asks what happened and how far it got; drag the zip into it.
 
 Common problems:
 

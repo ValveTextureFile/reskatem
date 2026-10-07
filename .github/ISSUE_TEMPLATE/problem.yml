@@ -1,0 +1,54 @@
+name: Something went wrong
+description: The installer, the app or the game does not work as expected.
+labels: ["problem"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please check the [common problems](https://github.com/ValveTextureFile/reskatem#something-went-wrong) first; your problem may already have a fix.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead. Paste any error message, or attach a screenshot.
+    validations:
+      required: true
+  - type: dropdown
+    id: stage
+    attributes:
+      label: How far did it get?
+      options:
+        - The installer stopped with an error
+        - Installed, but the app does not start
+        - The ReSkate launcher opens, but the game does not start
+        - The game starts, then crashes or freezes
+        - The game runs, but something in it is wrong (graphics, controls, sound, mods...)
+        - Something else
+    validations:
+      required: true
+  - type: input
+    id: mac
+    attributes:
+      label: Your Mac
+      description: Apple menu > About This Mac. The chip, memory and macOS version.
+      placeholder: "MacBook Air M2, 16 GB, macOS 15.5"
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: How did you install it?
+      options:
+        - Terminal command (curl ... | bash)
+        - Downloaded the zip and opened Install ReSkate for Mac.command
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: |
+        Double-click **Collect Diagnostics.command**, then drag the zip it puts on your Desktop into this box.
+        It contains no game files or logins, and your macOS account name is replaced with `<you>`.
+    validations:
+      required: false
