@@ -26,7 +26,7 @@ Steam with your own free account) and ReSkate. You end up with a **skate. (ReSka
 press Enter:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/ValveTextureFile/reskatem/master/get.sh | bash
+curl -fsSL https://raw.githubusercontent.com/ValveTextureFile/reskatem/refs/heads/master/get.sh | bash
 ```
 
 **Option 2:** download this project as a zip (green **Code** button → **Download ZIP**), unzip it, then
