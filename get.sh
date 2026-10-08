@@ -1,7 +1,7 @@
 #!/bin/bash
 # One-line install, run in Terminal:
 #
-#   curl -fsSL https://raw.githubusercontent.com/ValveTextureFile/reskatem/main/get.sh | bash
+#   https://raw.githubusercontent.com/ValveTextureFile/reskatem/refs/heads/master/get.sh | bash
 #
 # Downloads this project into ~/ReSkate for Mac (installer) and starts the installer. Files fetched this
 # way are not quarantined by Gatekeeper, so there is no "cannot be opened" warning to click through.
