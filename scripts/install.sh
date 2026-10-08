@@ -61,11 +61,14 @@ else
     fail "This is an Intel Mac. skate. needs an Apple Silicon Mac (M1 or newer)." \
         "There is no way around this: D3DMetal, which runs skate.'s DirectX 12 graphics, only exists for Apple Silicon."
 fi
+# D3DMetal 3.0's libdxccontainer.dylib is built for macOS 15.4 and needs a libc++ function older macOS lacks
+# (operator delete(void*, std::__type_descriptor_t)), so on 14.x the game dies with "Failed to dlopen D3DMetal".
 macos_version="$(sw_vers -productVersion)"
-if [ "${macos_version%%.*}" -ge 14 ]; then
+macos_major="${macos_version%%.*}"; macos_minor="$(echo "$macos_version" | cut -s -d. -f2)"
+if [ "$macos_major" -gt 15 ] || { [ "$macos_major" -eq 15 ] && [ "${macos_minor:-0}" -ge 4 ]; }; then
     ok "macOS $macos_version"
 else
-    fail "macOS $macos_version is too old." "Update to macOS 14 Sonoma or newer in System Settings > General > Software Update."
+    fail "macOS $macos_version is too old." "Update to macOS 15.4 Sequoia or newer in System Settings > General > Software Update."
 fi
 memory_gb=$(( $(sysctl -n hw.memsize) / 1073741824 ))
 if [ "$memory_gb" -ge 16 ]; then ok "${memory_gb} GB memory"
@@ -269,7 +272,7 @@ cat > "$APP_PATH/Contents/Info.plist" <<EOF
     <key>CFBundlePackageType</key><string>APPL</string>
     <key>CFBundleShortVersionString</key><string>$reskate_version</string>
     <key>CFBundleIconFile</key><string>AppIcon</string>
-    <key>LSMinimumSystemVersion</key><string>14.0</string>
+    <key>LSMinimumSystemVersion</key><string>15.4</string>
     <key>NSHighResolutionCapable</key><true/>
 </dict>
 </plist>

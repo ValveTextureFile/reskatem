@@ -15,7 +15,7 @@ Steam with your own free account) and ReSkate. You end up with a **skate. (ReSka
 | | |
 |---|---|
 | Mac | **Apple Silicon** (M1, M2, M3, M4 or newer). Intel Macs cannot run it. |
-| macOS | **14 Sonoma** or newer |
+| macOS | **15.4 Sequoia** or newer |
 | Memory | 16 GB recommended (less may stutter; untested) |
 | Disk | about **18 GB** free |
 | Steam | a free Steam account, and the **Steam app on your phone** to sign in by scanning a QR code |
@@ -60,7 +60,8 @@ Open **skate. (ReSkate)** from Applications or Spotlight and press **PLAY**.
 - The **first start** can show a black screen for a few minutes while the graphics shaders are built.
 - It plays **offline**: no EA servers needed; your progress is saved on your Mac.
 - **Insert** opens the ReSkate menu, **~** the console. On a Mac keyboard without Insert, change the menu key
-  in the launcher's Settings.
+  in the launcher's Settings (**\\** works well).
+- The game starts capped at **30 FPS**: set the frame-rate limit to **60** in its graphics settings.
 - If it runs slowly, lower the graphics settings or resolution in the game.
 - **Mods:** install them from the launcher's **MODS** page, as on Windows.
 
@@ -83,11 +84,14 @@ Common problems:
 |---|---|
 | "Install ReSkate for Mac.command cannot be opened" | Right-click it → **Open** → **Open**, or use the Terminal line above. |
 | "This is an Intel Mac" | Not supported: D3DMetal only exists for Apple Silicon. |
+| "Failed to dlopen D3DMetal" | macOS is older than 15.4. Update macOS, then start the game again. |
 | The download says *no subscription* or *access denied* | Add skate. to your Steam library (free, **Play Game** on its store page), then run the installer again. |
 | The QR code doesn't appear or expires | Run the installer again; it shows a fresh one. |
 | Black screen on first start | Wait a few minutes: shaders are being built. |
 | It stops right after starting | A dialog points to the log; run Collect Diagnostics and share the zip. |
 | Very slow | Lower graphics settings; close other apps; 16 GB of memory is recommended. |
+| Game speed jumps between slow motion and fast, worst on custom maps | A known ReSkate slowdown under Wine; a fix is being worked on. |
+| Mods page never finishes merging | Disable `FAKIE-All_Skate_3_Cosmetics_almost` (v0.5.3 is known to hang the merge). |
 
 For detailed Wine logs, start it from Terminal with
 `~/Library/Application\ Support/ReSkate\ for\ Mac/bin/launch.sh --debug`, and `--hud` shows Apple's
