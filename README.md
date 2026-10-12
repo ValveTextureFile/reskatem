@@ -59,8 +59,8 @@ Open **skate. (ReSkate)** from Applications or Spotlight and press **PLAY**.
 
 - The **first start** can show a black screen for a few minutes while the graphics shaders are built.
 - It plays **offline**: no EA servers needed; your progress is saved on your Mac.
-- **Insert** opens the ReSkate menu, **~** the console. On a Mac keyboard without Insert, change the menu key
-  in the launcher's Settings (**\\** works well).
+- `\` opens the ReSkate menu (on Windows it is Insert, which Mac keyboards lack) and `~` the console.
+  You can change the menu key in the launcher's Settings.
 - The game starts capped at **30 FPS**: set the frame-rate limit to **60** in its graphics settings.
 - If it runs slowly, lower the graphics settings or resolution in the game.
 - **Mods:** install them from the launcher's **MODS** page, as on Windows.

@@ -136,12 +136,17 @@ game_dir() {
 # version 22.20.19.16, so skate. refuses to start ("Please update your AMD Radeon driver") and then calls
 # an ADL function the stand-in lacks. Without the library the game skips its AMD driver checks.
 # RESKATE_STARTUP_COMMANDS: ReSkate's GI throttle and mesh culling tree, which save CPU under Rosetta.
+# https://github.com/ValveTextureFile/reskatem/issues/1
+# RESKATE_CRASH_REPORTING=0: ReSkate's crash uploader hashes with BCRYPT_SHA256_ALG_HANDLE, a pseudo-handle
+# (0x41) that this Wine's BCryptHash treats as a pointer, so it faults; ReSkate 1.1.5 dies at launch from it.
+# https://github.com/ValveTextureFile/reskatem/issues/1
 wine_env() {
     export WINEPREFIX="$PREFIX_DIR"
     export WINEESYNC=1
     export ROSETTA_ADVERTISE_AVX=1
     export WINEDLLOVERRIDES="atiadlxx=d"
     export RESKATE_STARTUP_COMMANDS="${RESKATE_STARTUP_COMMANDS:-perf gi 60;perf meshtree 1}"
+    export RESKATE_CRASH_REPORTING=0
     if [ "${RESKATEM_DEBUG:-0}" = 1 ]; then export WINEDEBUG="+err,+warn,+loaddll"; else export WINEDEBUG="-all"; fi
 }
 wine() { wine_env; "$WINE_BIN/wine64" "$@"; }

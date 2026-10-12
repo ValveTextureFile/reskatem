@@ -252,6 +252,25 @@ for file in ReSkateLauncher.exe ReSkate.dll; do
     fi
 done
 cp "$downloads/launcher.json" "$STATE_DIR/launcher.json"
+# ReSkate's launcher settings (ReSkateLauncher.settings.json beside it):
+# - crash_reports off: ReSkate's crash uploader faults in this Wine (see RESKATE_CRASH_REPORTING in
+#   common.sh). The launcher clears that variable before starting the game unless this setting is off.
+# - menu_key 220 (\): Mac keyboards have no Insert key, which opens the ReSkate menu by default. Only a missing
+#   setting or the default (Insert, 45) is changed, so a key chosen in the launcher stays.
+# https://github.com/ValveTextureFile/reskatem/issues/1
+settings="$game/ReSkateLauncher.settings.json"
+if [ ! -f "$settings" ]; then
+    # Written whole: plutil reads a bare {} as an old-style plist, not JSON.
+    printf '{"crash_reports":false,"menu_key":220}\n' > "$settings"
+    ok "ReSkate crash reports off (they crash under this Wine); menu key set to \\ (Mac keyboards have no Insert key)"
+else
+    plutil -replace crash_reports -bool false "$settings" || fail "Could not update $settings." "Run the installer again."
+    ok "ReSkate crash reports off (they crash under this Wine)"
+    menu_key="$(json_get "$settings" menu_key || true)"
+    if [ -z "$menu_key" ] || [ "$menu_key" = 45 ]; then
+        plutil -replace menu_key -integer 220 "$settings" && ok "ReSkate menu key set to \\ (Mac keyboards have no Insert key)"
+    fi
+fi
 
 # ---- 7. App ------------------------------------------------------------------------------------------------------
 step "Adding \"skate. (ReSkate)\" to Applications"
