@@ -170,12 +170,15 @@ steam_installed() { [ -f "$STEAM_DIR/steam.exe" ] || [ -f "$STEAM_DIR/Steam.exe"
 
 # The environment for the online setup. GnuTLS (HTTPS inside Wine) lives in the runtime's unix folder, so it
 # must be on the library path; the D3DMetal DLLs are Wine builtins there; atiadlxx=d as for wine_env.
+# This Wine 11 has msync (Mach semaphores) instead of esync; WINEESYNC alone does nothing here.
+# gameoverlayrenderer=d keeps the Steam overlay out of the game: it hooks every frame and does not work under
+# Wine on macOS anyway (MetalSharp's own launcher turns it off the same way).
 online_wine_env() {
     export WINEPREFIX="$ONLINE_PREFIX_DIR"
-    export WINEESYNC=1
+    export WINEMSYNC=1
     export ROSETTA_ADVERTISE_AVX=1
     export DYLD_FALLBACK_LIBRARY_PATH="$ONLINE_WINE_DIR/lib/wine/x86_64-unix:$ONLINE_WINE_DIR/lib/external:$ONLINE_WINE_DIR/lib"
-    export WINEDLLOVERRIDES="d3d10,d3d11,d3d12,dxgi,nvapi64,nvngx-on-metalfx=b;atiadlxx=d"
+    export WINEDLLOVERRIDES="d3d10,d3d11,d3d12,dxgi,nvapi64,nvngx-on-metalfx=b;atiadlxx=d;gameoverlayrenderer,gameoverlayrenderer64=d"
     if [ "${RESKATEM_DEBUG:-0}" = 1 ]; then export WINEDEBUG="+err,+warn,+loaddll"; else export WINEDEBUG="-all"; fi
 }
 online_wine() { online_wine_env; "$ONLINE_WINE_DIR/bin/wine" "$@"; }
@@ -196,3 +199,33 @@ steam_wrapper_fix() {
         echo "Wrapped $(basename "$dir")/steamwebhelper.exe"
     done
 }
+
+# Keeps Steam to what the game needs. steam.cfg stops Steam updating itself, which also stops it putting its own
+# steamwebhelper.exe back; Steam's servers eventually refuse a client that is too old, so steam.sh --update lets
+# it update once (steam_updates on) and then turns updates off again. Prints one line per change.
+STEAM_CFG="$STEAM_DIR/steam.cfg"
+steam_updates() {
+    case "$1" in
+        off) [ -f "$STEAM_CFG" ] && return 0
+             printf 'BootStrapperInhibitAll=enable\r\nBootStrapperForceSelfUpdate=disable\r\n' > "$STEAM_CFG" || return 1
+             echo "Turned off Steam's self-updates (steam.cfg)" ;;
+        on)  [ -f "$STEAM_CFG" ] || return 0
+             rm -f "$STEAM_CFG" && echo "Turned on Steam's self-updates" ;;
+    esac
+}
+# Removes what Steam only needs while updating, or rebuilds on its own: update downloads, the HTTP cache, crash
+# dumps and old logs. Only call it while Steam is not running.
+steam_cleanup() {
+    local before after
+    before=$(du -sk "$STEAM_DIR" 2>/dev/null | cut -f1)
+    # package/ holds the downloaded update archives; Steam only reads them while updating, which steam.cfg stops.
+    [ -f "$STEAM_CFG" ] && rm -rf "$STEAM_DIR/package"/*.zip.* "$STEAM_DIR/package/tmp"
+    rm -rf "$STEAM_DIR/appcache/httpcache" "$STEAM_DIR/dumps"
+    find "$STEAM_DIR/logs" -type f -mtime +7 -delete 2>/dev/null || true
+    after=$(du -sk "$STEAM_DIR" 2>/dev/null | cut -f1)
+    [ -n "$before" ] && [ -n "$after" ] && [ "$before" -gt "$after" ] &&
+        echo "Freed $(( (before - after) / 1024 )) MB of Steam caches and update files"
+    return 0
+}
+# True once someone has signed in to Steam here and asked it to remember them, so Steam can start in the tray.
+steam_signed_in() { grep -qi '"RememberPassword"[[:space:]]*"1"' "$STEAM_DIR/config/loginusers.vdf" 2>/dev/null; }

@@ -5,6 +5,9 @@
 #   launch.sh            normal start
 #   launch.sh --debug    log Wine's errors, warnings and loaded DLLs too (for bug reports)
 #   launch.sh --hud      show Apple's Metal performance HUD (frame rate, GPU time)
+#   launch.sh --metalfx  EXPERIMENTAL: let D3DMetal turn the game's DLSS option into Apple's MetalFX upscaling
+#   launch.sh --fps=N    cap the frame rate at N (online setup only; its D3DMetal has the cap, GPTK 3's does not).
+#                        A cap a little under what the Mac reaches keeps frame times even and the Mac cooler.
 #   launch.sh --online   EXPERIMENTAL: start in the online setup (online-setup.sh) with Windows Steam
 #                        (steam.sh) and without ReSkate's --offline flag; see STEAM-TESTING.md
 
@@ -18,6 +21,8 @@ for arg in "$@"; do
     case "$arg" in
         --debug) export RESKATEM_DEBUG=1 ;;
         --hud) export MTL_HUD_ENABLED=1 ;;
+        --metalfx) export D3DM_ENABLE_METALFX=1 ;;
+        --fps=*) export D3DM_MAX_FPS="${arg#--fps=}" ;;
         --online) reskate_args=(); online=1 ;;
     esac
 done
@@ -40,6 +45,11 @@ alert() { # alert "message": a macOS dialog, since the app has no terminal
     if [ "$online" = 1 ]; then echo "Engine: online setup, $ONLINE_RUNTIME_VERSION ($ONLINE_WINE_DIR)"
     else echo "Engine: Game Porting Toolkit $ENGINE_VERSION ($WINE_BIN)"; fi
     echo "Arguments: ${reskate_args[*]:-}"
+    [ -n "${D3DM_ENABLE_METALFX:-}" ] && echo "MetalFX upscaling: on (experimental)"
+    if [ -n "${D3DM_MAX_FPS:-}" ]; then
+        if [ "$online" = 1 ]; then echo "Frame rate cap: $D3DM_MAX_FPS"
+        else echo "Frame rate cap: ignored (only the online setup's D3DMetal supports it)"; fi
+    fi
 } > "$LOG_FILE"
 
 [ -x "$WINE_BIN/wine64" ] || { alert "The compatibility layer is missing. Run the ReSkate for Mac installer again."; exit 1; }

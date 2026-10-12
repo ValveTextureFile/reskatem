@@ -47,6 +47,7 @@ if [ -d "$ONLINE_DIR" ]; then
     check_file "  D3DMetal for Wine 11" "$ONLINE_WINE_DIR/lib/external/D3DMetal.framework/D3DMetal"
     check_file "  Windows Steam" "$STEAM_DIR/steam.exe"
     check_file "  Steam browser wrapper" "$STEAM_DIR/bin/cef/cef.win64/steamwebhelper.exe" "$(sha256_of "$STEAM_WRAPPER" 2>/dev/null)"
+    line "  Steam self-updates: $([ -f "$STEAM_CFG" ] && echo off || echo on)"
 fi
 line "Game folder: $game"
 pinned="$STATE_DIR/launcher.json"

@@ -90,11 +90,12 @@ Common problems:
 | The QR code doesn't appear or expires | Run the installer again; it shows a fresh one. |
 | Black screen on first start | Wait a few minutes: shaders are being built. |
 | It stops right after starting | A dialog points to the log; run Collect Diagnostics and share the zip. |
-| Very slow | Lower graphics settings; close other apps; 16 GB of memory is recommended. |
+| Very slow | Lower graphics settings, especially resolution; turn off Low Power Mode and plug in a MacBook; close other apps (16 GB of memory is recommended). Try `--metalfx` (below) and pick DLSS in the game's graphics settings. |
 
 For detailed Wine logs, start it from Terminal with
 `~/Library/Application\ Support/ReSkate\ for\ Mac/bin/launch.sh --debug`, and `--hud` shows Apple's
-frame-rate overlay.
+frame-rate overlay. `--metalfx` (experimental) lets the game's DLSS option use Apple's MetalFX upscaling,
+which renders at a lower resolution and scales up.
 
 ## Uninstall
 

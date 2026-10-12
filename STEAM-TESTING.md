@@ -60,6 +60,12 @@ The online setup's environment (`online_wine_env` in [`scripts/common.sh`](scrip
 - **D3DMetal's DLLs as builtins:** `d3d10,d3d11,d3d12,dxgi,nvapi64,nvngx-on-metalfx=b`.
 - **`atiadlxx=d`**, as in the offline setup. D3DMetal presents the GPU as an AMD Radeon, and Wine's
   stand-in AMD driver library reports an old driver version.
+- **`WINEMSYNC=1`.** This Wine 11 syncs threads with Mach semaphores (msync) and has no esync, so the
+  offline setup's `WINEESYNC=1` did nothing here.
+- **`gameoverlayrenderer,gameoverlayrenderer64=d`** keeps the Steam overlay out of the game. It hooks every
+  frame and does not work under Wine on macOS anyway. MetalSharp's own launcher does the same.
+- **Frame rate cap:** this D3DMetal (GPTK 4) can cap the frame rate. `launch.sh --online --fps=60` sets
+  it.
 
 ### Steam's window
 
@@ -80,6 +86,30 @@ The idea comes from MetalSharp's Steam wrapper; this is a separate implementatio
 Steam updates put their own `steamwebhelper.exe` back. So [`scripts/steam.sh`](scripts/steam.sh) puts the
 wrapper in place before starting Steam and keeps watching while Steam runs. It replaces the file again
 within a few seconds of an update.
+
+### Keeping Steam small
+
+The game only needs Steam signed in, not its store, friends or downloads. The browser (`steamwebhelper`)
+cannot be removed, since Steam's sign-in and every window use it. Everything else is kept to a minimum:
+
+- **No self-updates.** After the first update, online-setup writes `steam.cfg` next to `steam.exe`
+  (`BootStrapperInhibitAll=enable`, `BootStrapperForceSelfUpdate=disable`). This also stops updates putting
+  Steam's own `steamwebhelper.exe` back. Steam's servers eventually refuse a client that is too old. When
+  sign-in stops working, run `steam.sh --update` once: it lets Steam update, then turns updates off again.
+- **Fewer windows.** `steam.sh` starts Steam with `-nofriendsui -nochatui`, and with `-silent` (in the tray,
+  no window) once an account is remembered. To try other options, set `STEAM_FLAGS` (it replaces all of
+  them, so include `-noverifyfiles`).
+- **No leftovers.** Before each start, update downloads (`package/`), the HTTP cache, crash dumps and logs
+  older than a week are deleted.
+
+Some settings are kept in Steam's own files in a format it rewrites, so they are not set automatically.
+Set them once in Steam's **Settings** after signing in. (The Steam overlay does not need to be turned off
+here: the online setup already keeps it out of the game.)
+
+- **Library:** turn on Low Performance Mode and Low Bandwidth Mode.
+- **Interface:** turn off smooth scrolling, and turn off starting Steam when the computer starts.
+- **Downloads:** turn off Shader Pre-Caching and downloads during gameplay.
+- Turn off **Broadcast** and **Remote Play**.
 
 ## Future plans
 
@@ -115,8 +145,10 @@ curl -fsSL https://raw.githubusercontent.com/ValveTextureFile/reskatem/steam-tes
 "$HOME/Library/Application Support/ReSkate for Mac/bin/online-setup.sh"
 ```
 
-**3. Start Steam and sign in.** The QR code works with the Steam app on your phone. Leave this Terminal
-window open while you use Steam; it keeps the wrapper in place and finishes a minute after Steam quits.
+**3. Start Steam and sign in.** The QR code works with the Steam app on your phone. Tick "Remember me" so
+later starts can go straight to the tray, and set the settings in
+[Keeping Steam small](#keeping-steam-small). Leave this Terminal window open while you use Steam; it keeps
+the wrapper in place and finishes a minute after Steam quits.
 
 ```sh
 "$HOME/Library/Application Support/ReSkate for Mac/bin/steam.sh"

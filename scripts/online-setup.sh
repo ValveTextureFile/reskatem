@@ -36,7 +36,8 @@ This will:
   2. download MetalSharp's Wine 11 runtime with Apple's D3DMetal (about 435 MB, 2.5 GB unpacked)
   3. copy the game's Windows environment
   4. install Windows Steam into the copy and let it update itself
-  5. fix Steam's window for Wine (see STEAM-TESTING.md)
+  5. fix Steam's window for Wine and slim Steam down: no self-updates, no leftover update files
+     (see STEAM-TESTING.md)
 
 ${YELLOW}Online play has not been tested much. Never go online with mods your account should not be seen with.${RESET}
 EOF
@@ -134,6 +135,11 @@ fi
 # ---- 5. Steam's window ---------------------------------------------------------------------------------------------
 step "Fixing Steam's window for Wine"
 changes="$(steam_wrapper_fix)" || fail "Could not set up Steam's browser wrapper." "Run this again."
+[ -n "$changes" ] && info "$changes"
+# Steam is up to date now (step 4), so stop it updating itself and clear out what the update left behind.
+changes="$(steam_updates off)" || fail "Could not turn off Steam's self-updates ($STEAM_CFG)." "Run this again."
+[ -n "$changes" ] && info "$changes"
+changes="$(steam_cleanup)"
 [ -n "$changes" ] && info "$changes"
 touch "$ONLINE_STATE_DIR/ready"
 ok "Ready"

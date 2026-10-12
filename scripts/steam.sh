@@ -4,7 +4,11 @@
 # replaces Steam's browser. Runs until Steam quits. Logged to ~/Library/Logs/ReSkate for Mac/steam-<date>.log.
 #
 #   steam.sh           start Steam (if it is not already running) and keep the wrapper in place
+#   steam.sh --update  the same, but let Steam update itself this once (self-updates are off otherwise)
 #   steam.sh --fix     only put the wrapper in place once and exit
+#
+# Steam starts with as little as it needs: no self-updates (steam.cfg), no friends or chat windows, and in the
+# tray instead of a window once an account is remembered. STEAM_FLAGS replaces those launch options.
 
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -13,10 +17,13 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 online_ready || { echo "The online setup is not ready. Run online-setup.sh first (see STEAM-TESTING.md)." >&2; exit 1; }
 [ -f "$STEAM_WRAPPER" ] || { echo "$STEAM_WRAPPER is missing. Run the ReSkate for Mac installer again." >&2; exit 1; }
 
-if [ "${1:-}" = --fix ]; then
-    steam_wrapper_fix
-    exit $?
-fi
+update=0
+case "${1:-}" in
+    --fix) steam_wrapper_fix; exit $? ;;
+    --update) update=1 ;;
+    "") ;;
+    *) echo "Unknown option: $1 (see the top of $0)" >&2; exit 1 ;;
+esac
 
 mkdir -p "$LOG_DIR"
 LOG_FILE="$LOG_DIR/steam-$(date '+%Y%m%d-%H%M%S').log"
@@ -29,11 +36,21 @@ browser_signature() { stat -f '%i:%m' "$STEAM_DIR"/bin/cef/cef.*/steamwebhelper.
 
 log "Steam in $ONLINE_PREFIX_DIR"
 steam_wrapper_fix >> "$LOG_FILE" 2>&1 || log "Could not put the browser wrapper in place"
-if ! steam_running; then
-    log "Starting Steam"
-    online_wine_env
+if steam_running; then
+    [ "$update" = 1 ] && log "Steam is already running; quit it first to let it update"
+else
+    if [ "$update" = 1 ]; then steam_updates on; else steam_updates off && steam_cleanup; fi >> "$LOG_FILE" 2>&1
     # -noverifyfiles: Steam would otherwise restore its own steamwebhelper.exe at every start.
-    "$ONLINE_WINE_DIR/bin/wine" "C:\\Program Files (x86)\\Steam\\steam.exe" -noverifyfiles >> "$LOG_FILE" 2>&1 &
+    # -nofriendsui -nochatui: skip windows the game does not need. -silent: start in the tray, once Steam can
+    # sign in without asking.
+    flags="-noverifyfiles -nofriendsui -nochatui"
+    steam_signed_in && [ "$update" = 0 ] && flags="$flags -silent"
+    flags="${STEAM_FLAGS:-$flags}"
+    log "Starting Steam with: $flags"
+    online_wine_env
+    # $flags is unquoted on purpose, so it splits into separate options.
+    # shellcheck disable=SC2086
+    "$ONLINE_WINE_DIR/bin/wine" "C:\\Program Files (x86)\\Steam\\steam.exe" $flags >> "$LOG_FILE" 2>&1 &
 fi
 
 # Steam restarts itself after updating, so allow a gap of up to a minute before deciding it has quit.
@@ -49,4 +66,6 @@ while [ $(( $(date +%s) - last_seen )) -lt 60 ]; do
         signature="$(browser_signature)"
     fi
 done
+# After an update, turn self-updates off again so the next start stays as it is.
+[ "$update" = 1 ] && steam_updates off >> "$LOG_FILE" 2>&1
 log "Steam has quit"
