@@ -7,7 +7,7 @@
 # way are not quarantined by Gatekeeper, so there is no "cannot be opened" warning to click through.
 set -euo pipefail
 repo="${RESKATEM_REPO:-ValveTextureFile/reskatem}"
-branch="${RESKATEM_BRANCH:-main}"
+branch="${RESKATEM_BRANCH:-master}"
 dest="$HOME/ReSkate for Mac (installer)"
 
 echo "Downloading the ReSkate for Mac installer from github.com/$repo ..."
