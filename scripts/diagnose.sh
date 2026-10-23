@@ -28,7 +28,9 @@ line "ReSkate for Mac diagnostics, $(date '+%Y-%m-%d %H:%M:%S')"
 
 section "System"
 line "macOS $(sw_vers -productVersion) ($(sw_vers -buildVersion))"
-line "Model: $(sysctl -n hw.model), CPU: $(sysctl -n machdep.cpu.brand_string), memory: $(( $(sysctl -n hw.memsize) / 1073741824 )) GB"
+line "Model: $(sysctl -n hw.model), CPU: $(sysctl -n machdep.cpu.brand_string), memory: $(memory_gb) GB"
+if low_memory_mode; then line "Low-memory mode: on"; else line "Low-memory mode: off"; fi
+line "Memory now: $(memory_pressure -Q 2>/dev/null | awk -F': ' '/percentage/ {print $2}') free, swap: $(sysctl -n vm.swapusage)"
 line "Apple Silicon: $(sysctl -n hw.optional.arm64 2>/dev/null || echo 0)"
 if arch -x86_64 /usr/bin/true 2>/dev/null; then line "Rosetta 2: installed"; else line "Rosetta 2: NOT installed"; fi
 line "Free disk space: $(free_gb "$HOME") GB"
