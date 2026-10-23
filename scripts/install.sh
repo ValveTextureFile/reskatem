@@ -70,9 +70,11 @@ if [ "$macos_major" -gt 15 ] || { [ "$macos_major" -eq 15 ] && [ "${macos_minor:
 else
     fail "macOS $macos_version is too old." "Update to macOS 15.4 Sequoia or newer in System Settings > General > Software Update."
 fi
-memory_gb=$(( $(sysctl -n hw.memsize) / 1073741824 ))
-if [ "$memory_gb" -ge 16 ]; then ok "${memory_gb} GB memory"
-else warn "${memory_gb} GB memory: 16 GB is recommended. The game may stutter; close other apps while playing."; fi
+if [ "$(memory_gb)" -ge 16 ]; then ok "$(memory_gb) GB memory"
+elif low_memory_mode; then
+    warn "$(memory_gb) GB memory: 16 GB is recommended. skate. will use low-memory mode (blurrier textures,"
+    warn "  about 0.8 GB less memory). Support for 8 GB is experimental: quit other apps, browsers above all, before playing."
+else warn "$(memory_gb) GB memory: 16 GB is recommended. The game may stutter; close other apps while playing."; fi
 
 target_dir="${custom_game_dir:-$(game_dir)}"
 needed_gb=3
@@ -322,7 +324,7 @@ ${BOLD}${GREEN}Done!${RESET} $PRODUCT is installed.
 
 ${BOLD}To play:${RESET} open ${BOLD}skate. (ReSkate)${RESET} from Applications (or Spotlight), then press ${BOLD}PLAY${RESET}.
   - The first start can show a black screen for a few minutes while graphics shaders are built.
-  - It plays offline (no EA servers). Insert opens the ReSkate menu, ~ the console.
+  - It plays offline (no EA servers). \\ opens the ReSkate menu, ~ the console.
   - If it runs slowly, lower the graphics settings in the game.
 
 ${BOLD}If something goes wrong:${RESET} double-click ${BOLD}Collect Diagnostics.command${RESET} and share the zip it puts on your Desktop.

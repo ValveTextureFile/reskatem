@@ -24,6 +24,8 @@ confirm "Uninstall?" || { echo "Nothing was removed."; exit 0; }
 
 # Stop anything still running in the environment first.
 if [ -x "$WINE_BIN/wineserver" ]; then wine_env; "$WINE_BIN/wineserver" -k 2>/dev/null || true; fi
+# Game files that are kept go back to the game's own texture budget.
+set_low_memory "$game" off 2>/dev/null || true
 
 if [ "$game" = "$DEFAULT_GAME_DIR" ] && [ -f "$game/Skate.exe" ]; then
     size="$(du -sh "$game" 2>/dev/null | cut -f1)"

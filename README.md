@@ -16,7 +16,7 @@ Steam with your own free account) and ReSkate. You end up with a **skate. (ReSka
 |---|---|
 | Mac | **Apple Silicon** (M1, M2, M3, M4 or newer). Intel Macs cannot run it. |
 | macOS | **15.4 Sequoia** or newer |
-| Memory | 16 GB recommended (less may stutter; untested) |
+| Memory | 16 GB recommended. **8 GB is experimental:** it uses [low-memory mode](#8-gb-macs-low-memory-mode) |
 | Disk | about **18 GB** free |
 | Steam | a free Steam account, and the **Steam app on your phone** to sign in by scanning a QR code |
 
@@ -65,6 +65,25 @@ Open **skate. (ReSkate)** from Applications or Spotlight and press **PLAY**.
 - If it runs slowly, lower the graphics settings or resolution in the game.
 - **Mods:** install them from the launcher's **MODS** page, as on Windows.
 
+### 8 GB Macs: low-memory mode
+
+In San Vansterdam skate. uses about **8.4 GB** on a Mac, even at its lowest graphics settings (measured on an
+M4), so on an 8 GB Mac most of it ends up in swap. On Macs with 8 GB or less, ReSkate for Mac therefore
+gives the game a smaller texture budget: textures look **blurrier**, and the game takes about **0.8 GB less**
+(7.6 GB). That is still more than 8 GB Macs have free, so expect stutter, and:
+
+- quit every other app before playing, browsers above all,
+- keep the game's graphics settings at their lowest and the frame-rate limit at 30,
+- if you play on an 8 GB Mac, please [open an issue](https://github.com/ValveTextureFile/reskatem/issues/new?template=problem.yml)
+  with the diagnostics zip, even if it runs well: each game log records the game's memory every 30
+  seconds, which is what is needed to make 8 GB work better.
+
+To try it on a bigger Mac, or to turn it off on a small one, start the game from Terminal with
+`~/Library/Application\ Support/ReSkate\ for\ Mac/bin/launch.sh --low-memory` (or `--no-low-memory`). To
+make the choice stick, write `on` or `off` to `~/Library/Application Support/ReSkate for Mac/state/low-memory`.
+Low-memory mode starts working from the **second** start after installing: ReSkate unpacks the game
+scripts it changes on the first one.
+
 ## Update
 
 Run the installer again. It updates ReSkate, and if ReSkate moved to a newer game build, downloads only the
@@ -89,7 +108,7 @@ Common problems:
 | The QR code doesn't appear or expires | Run the installer again; it shows a fresh one. |
 | Black screen on first start | Wait a few minutes: shaders are being built. |
 | It stops right after starting | A dialog points to the log; run Collect Diagnostics and share the zip. |
-| Very slow | Lower graphics settings; close other apps; 16 GB of memory is recommended. |
+| Very slow | Lower graphics settings; close other apps; 16 GB of memory is recommended (on 8 GB, see [low-memory mode](#8-gb-macs-low-memory-mode)). |
 | Game speed jumps between slow motion and fast, worst on custom maps | A known ReSkate slowdown under Wine; a fix is being worked on. |
 | Mods page never finishes merging | Disable `FAKIE-All_Skate_3_Cosmetics_almost` (v0.5.3 is known to hang the merge). |
 

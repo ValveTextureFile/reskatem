@@ -150,4 +150,39 @@ wine_env() {
     if [ "${RESKATEM_DEBUG:-0}" = 1 ]; then export WINEDEBUG="+err,+warn,+loaddll"; else export WINEDEBUG="-all"; fi
 }
 wine() { wine_env; "$WINE_BIN/wine64" "$@"; }
+
+# ---- Low-memory Macs ------------------------------------------------------------------------------------
+# In San Vansterdam skate. takes about 8.4 GB on a Mac, even at the game's lowest quality tier (measured on
+# a 16 GB M4: 4.5 GB of graphics memory, 2.4 GB of game heap, 1 GB of Wine and D3DMetal), so an 8 GB Mac
+# lives in swap. Low-memory mode gives the game's texture streaming pool 384 MB (about what the game's own
+# 6 GB phone tier has) instead of the 919 MB of the PC's Low texture quality: textures stream in at lower
+# detail, and the game takes about 0.8 GB less (7.6 GB). A smaller pool saved nothing more (256 MB measured
+# the same). The mesh pool is left alone: ReSkate notes that a level whose meshes do not fit never finishes
+# loading or spawns the skater invisible.
+# https://github.com/ValveTextureFile/reskatem/issues/1
+LOW_MEMORY_FILE="$STATE_DIR/low-memory"   # "on" or "off" overrides the automatic choice
+LOW_MEMORY_BEGIN="-- reskatem low-memory begin"
+LOW_MEMORY_END="-- reskatem low-memory end"
+memory_gb() { echo $(( $(sysctl -n hw.memsize) / 1073741824 )); }
+# Whether low-memory mode is on: RESKATEM_LOW_MEMORY=1/0, else LOW_MEMORY_FILE, else on for Macs of 8 GB or less.
+low_memory_mode() {
+    case "${RESKATEM_LOW_MEMORY:-$(cat "$LOW_MEMORY_FILE" 2>/dev/null)}" in
+        1|on) return 0 ;;
+        0|off) return 1 ;;
+    esac
+    [ "$(memory_gb)" -le 8 ]
+}
+# set_low_memory GAME_DIR on|off: adds or removes the settings in the game's loose GraphicsPC.lua (exported
+# by ReSkate on its first start; edits there are kept). It runs after the game applies its quality
+# settings, so the pool set here is the one used. Fails if ReSkate has not exported the file yet.
+set_low_memory() {
+    local file="$1/scripts/Game/Licensee/QualitySettings/GraphicsPC.lua"
+    [ -f "$file" ] || return 1
+    sed -i '' "/^$LOW_MEMORY_BEGIN\$/,/^$LOW_MEMORY_END\$/d" "$file" || return 1
+    [ "$2" = on ] || return 0
+    printf '%s\n%s\n' "$LOW_MEMORY_BEGIN" 'applySettings [=[
+	TextureStreaming.PoolSize 393216
+]=]' >> "$file"
+    printf '%s\n' "$LOW_MEMORY_END" >> "$file"
+}
 wineserver_wait() { wine_env; "$WINE_BIN/wineserver" -w 2>/dev/null || true; }
