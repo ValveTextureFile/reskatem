@@ -186,6 +186,7 @@ fi
 # ---- 5. The game ------------------------------------------------------------------------------------------------
 step "skate. game files"
 info "Reading which skate. build the latest ReSkate supports..."
+rm -f "$downloads/launcher.json" # download() resumes partial files; a leftover from an earlier run would be stale
 download "$RESKATE_RELEASE_URL/launcher.json" "$downloads/launcher.json"
 manifest_id="$(json_get "$downloads/launcher.json" game.manifest_id)"
 build_id="$(json_get "$downloads/launcher.json" game.build_id)"
@@ -277,7 +278,7 @@ fi
 # ---- 7. App ------------------------------------------------------------------------------------------------------
 step "Adding \"skate. (ReSkate)\" to Applications"
 mkdir -p "$BASE_DIR/bin"
-cp "$HERE/common.sh" "$HERE/launch.sh" "$HERE/diagnose.sh" "$HERE/uninstall.sh" "$BASE_DIR/bin/"
+cp "$HERE/common.sh" "$HERE/launch.sh" "$HERE/diagnose.sh" "$HERE/uninstall.sh" "$HERE/pin-reskate.sh" "$BASE_DIR/bin/"
 chmod +x "$BASE_DIR/bin/"*.sh
 mkdir -p "$HOME/Applications"
 rm -rf "$APP_PATH"

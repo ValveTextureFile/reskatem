@@ -51,6 +51,7 @@ if [ -f "$pinned" ]; then
     check_file "ReSkateLauncher.exe" "$game/ReSkateLauncher.exe" "$(json_get "$pinned" launcher.sha256)"
     check_file "ReSkate.dll" "$game/ReSkate.dll" "$(json_get "$pinned" runtime.sha256)"
     cp "$pinned" "$work/launcher.json"
+    [ -n "$RESKATE_PINNED" ] && line "         pinned to $RESKATE_PINNED with pin-reskate.sh (ReSkate updates off)"
 else
     line "ReSkate: not recorded (the installer has not finished)"
     check_file "Skate.exe" "$game/Skate.exe"

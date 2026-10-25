@@ -24,6 +24,8 @@ for arg in "$@"; do
         --no-low-memory) export RESKATEM_LOW_MEMORY=0 ;;
     esac
 done
+# A pinned ReSkate (pin-reskate.sh) must not update itself back to the latest.
+if [ -n "$RESKATE_PINNED" ]; then reskate_args+=(--no-update); fi
 
 mkdir -p "$LOG_DIR"
 LOG_FILE="$LOG_DIR/game-$(date '+%Y%m%d-%H%M%S').log"

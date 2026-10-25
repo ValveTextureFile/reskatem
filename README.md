@@ -89,6 +89,10 @@ scripts it changes on the first one.
 Run the installer again. It updates ReSkate, and if ReSkate moved to a newer game build, downloads only the
 files that changed.
 
+If the newest ReSkate is broken on Mac, double-click **Downgrade ReSkate to 2.0.3.command**. It installs ReSkate
+2.0.3 and turns ReSkate's own updates off, and running the installer again keeps 2.0.3. To go back to the
+latest, run `~/Library/Application\ Support/ReSkate\ for\ Mac/bin/pin-reskate.sh --latest`.
+
 ## Something went wrong?
 
 1. Double-click **Collect Diagnostics.command**. It saves a zip on your Desktop with your system details,
@@ -108,7 +112,12 @@ Common problems:
 | The QR code doesn't appear or expires | Run the installer again; it shows a fresh one. |
 | Black screen on first start | Wait a few minutes: shaders are being built. |
 | It stops right after starting | A dialog points to the log; run Collect Diagnostics and share the zip. |
+<<<<<<< HEAD
 | Very slow | Lower graphics settings; close other apps; 16 GB of memory is recommended (on 8 GB, see [low-memory mode](#8-gb-macs-low-memory-mode)). |
+=======
+| The launcher closes at once; its log says *cannot create the Direct3D 12 pipeline* | ReSkate 2.0.4 and later can't draw the launcher under D3DMetal. Double-click **Downgrade ReSkate to 2.0.3.command**. |
+| Very slow | Lower graphics settings; close other apps; 16 GB of memory is recommended. |
+>>>>>>> 8a6323c (fix: see issues #15 and #14)
 | Game speed jumps between slow motion and fast, worst on custom maps | A known ReSkate slowdown under Wine; a fix is being worked on. |
 | Mods page never finishes merging | Disable `FAKIE-All_Skate_3_Cosmetics_almost` (v0.5.3 is known to hang the merge). |
 

@@ -15,8 +15,8 @@ DEPOTDOWNLOADER_VERSION="3.4.0"
 DEPOTDOWNLOADER_URL="https://github.com/SteamRE/DepotDownloader/releases/download/DepotDownloader_3.4.0/DepotDownloader-macos-arm64.zip"
 DEPOTDOWNLOADER_SHA256="60e80c7c496f3f9a079cd3c62036b35d088c27bc0149baf38f009eb57a52f6a5"
 
-# ReSkate itself: always the latest release. Its launcher.json pins the launcher's and runtime's
-# SHA-256 and the exact skate. build it supports, so those are checked against it.
+# ReSkate itself: the latest release, unless pin-reskate.sh chose one (see RESKATE_PINNED below). Its
+# launcher.json pins the launcher's and runtime's SHA-256 and the exact skate. build it supports.
 RESKATE_RELEASE_URL="https://github.com/Dingo-Shenanigans/ReSkate/releases/latest/download"
 VCREDIST_URL="https://aka.ms/vs/17/release/vc_redist.x64.exe"
 
@@ -36,6 +36,11 @@ DEFAULT_GAME_DIR="$BASE_DIR/game"
 LOG_DIR="$HOME/Library/Logs/ReSkate for Mac"
 APP_PATH="$HOME/Applications/skate. (ReSkate).app"
 GAME_DIR_FILE="$STATE_DIR/game-dir"           # remembers where the game is
+RESKATE_PIN_FILE="$STATE_DIR/reskate-pinned"  # a ReSkate version to keep, written by pin-reskate.sh
+RESKATE_PINNED="$(cat "$RESKATE_PIN_FILE" 2>/dev/null || true)"
+if [ -n "$RESKATE_PINNED" ]; then
+    RESKATE_RELEASE_URL="https://github.com/Dingo-Shenanigans/ReSkate/releases/download/v$RESKATE_PINNED"
+fi
 
 # ---- Output -------------------------------------------------------------------------------------------
 if [ -t 1 ]; then
