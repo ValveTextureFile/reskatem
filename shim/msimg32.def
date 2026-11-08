@@ -1,0 +1,7 @@
+LIBRARY msimg32.dll
+EXPORTS
+    vSetDdrawflag @1
+    AlphaBlend = gdi32.GdiAlphaBlend @2
+    GradientFill = gdi32.GdiGradientFill @4
+    TransparentBlt = gdi32.GdiTransparentBlt @5
+    FastReadForTest = fast_read

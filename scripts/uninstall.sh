@@ -17,7 +17,7 @@ This removes:
                               $BASE_DIR
 EOF
 if [ "$game" != "$DEFAULT_GAME_DIR" ]; then
-    echo "  (your own game folder $game is kept; only ReSkate's two files are removed from it)"
+    echo "  (your own game folder $game is kept; only ReSkate's files and msimg32.dll are removed from it)"
 fi
 echo
 confirm "Uninstall?" || { echo "Nothing was removed."; exit 0; }
@@ -34,7 +34,7 @@ if [ "$game" = "$DEFAULT_GAME_DIR" ] && [ -f "$game/Skate.exe" ]; then
         mv "$game" "$kept" && echo "Game files moved to: $kept  (reinstall with: install.sh --game-dir \"$kept\")"
     fi
 elif [ "$game" != "$DEFAULT_GAME_DIR" ]; then
-    rm -f "$game/ReSkateLauncher.exe" "$game/ReSkate.dll" "$game/launcher.json"
+    rm -f "$game/ReSkateLauncher.exe" "$game/ReSkate.dll" "$game/launcher.json" "$game/msimg32.dll"
 fi
 
 rm -rf "$APP_PATH" && echo "Removed the app."

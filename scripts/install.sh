@@ -255,6 +255,11 @@ for file in ReSkateLauncher.exe ReSkate.dll; do
     fi
 done
 cp "$downloads/launcher.json" "$STATE_DIR/launcher.json"
+# The msimg32.dll stand-in (shim/msimg32.c, enabled in wine_env): fixes slow-motion game speed and the
+# BCrypt crash at launch in ReSkate 2.1.3 and newer.
+# https://github.com/ValveTextureFile/reskatem/issues/1 https://github.com/ValveTextureFile/reskatem/issues/16
+cp "$HERE/../shim/msimg32.dll" "$game/msimg32.dll" || fail "Could not copy msimg32.dll into $game." "Run the installer again."
+ok "Game speed and crash fix (msimg32.dll) installed"
 # ReSkate's launcher settings (ReSkateLauncher.settings.json beside it):
 # - crash_reports off: ReSkate's crash uploader faults in this Wine (see RESKATE_CRASH_REPORTING in
 #   common.sh). The launcher clears that variable before starting the game unless this setting is off.

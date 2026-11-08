@@ -28,9 +28,12 @@ done
 if [ -n "$RESKATE_PINNED" ]; then reskate_args+=(--no-update); fi
 
 mkdir -p "$LOG_DIR"
-LOG_FILE="$LOG_DIR/game-$(date '+%Y%m%d-%H%M%S').log"
-# Keep the 20 newest game logs.
-ls -1t "$LOG_DIR"/game-*.log 2>/dev/null | tail -n +21 | while read -r old; do rm -f "$old"; done
+session="$(date '+%Y%m%d-%H%M%S')"
+LOG_FILE="$LOG_DIR/game-$session.log"
+# Keep the 20 newest game logs, and ReSkate's own logs from those sessions.
+for kind in game reskate; do
+    ls -1t "$LOG_DIR"/$kind-*.log 2>/dev/null | tail -n +21 | while read -r old; do rm -f "$old"; done
+done
 
 game="$(game_dir)"
 alert() { # alert "message": a macOS dialog, since the app has no terminal
@@ -56,6 +59,7 @@ if set_low_memory "$game" "$low_memory"; then
 else
     echo "Low-memory mode: $low_memory, but not applied: ReSkate has not exported the game's scripts yet (it does on this first start)" >> "$LOG_FILE"
 fi
+[ -f "$game/msimg32.dll" ] || echo "msimg32.dll stand-in: MISSING (game speed and BCrypt fixes off; run the installer again)" >> "$LOG_FILE"
 echo "Memory before start: $(memory_pressure -Q 2>/dev/null | awk -F': ' '/percentage/ {print $2}') free, swap $(sysctl -n vm.swapusage | awk '{print $6}') used" >> "$LOG_FILE"
 
 # Every 30 s while the game runs: its memory footprint (graphics memory included), swap used and how much
@@ -81,6 +85,8 @@ wineserver_wait
 { kill "$memory_logger"; wait "$memory_logger"; } 2>/dev/null
 elapsed=$(( $(date +%s) - started ))
 echo "== exited with status $status after ${elapsed}s" >> "$LOG_FILE"
+# ReSkate starts its log over on every start, so keep this session's next to the game log for diagnostics.
+[ -f "$game/logs/ReSkate.log" ] && cp "$game/logs/ReSkate.log" "$LOG_DIR/reskate-$session.log"
 
 # A quick non-zero exit means it never really started; say so instead of failing silently.
 if [ "$status" -ne 0 ] && [ "$elapsed" -lt 30 ]; then

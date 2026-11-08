@@ -20,7 +20,7 @@ inline bool starts_with(const std::string& s, const char* prefix) {
     return s.rfind(prefix, 0) == 0;
 }
 
-// report.txt: "== Section" headers, "OK/MISSING/MISMATCH  label" checks and "Key: value" lines.
+// report.txt: "== Section" headers, "OK/UPDATED/MISSING/MISMATCH  label" checks and "Key: value" lines.
 inline void report_tab() {
     static bool raw = false;
     const std::string& r = g_diag.report;
@@ -92,9 +92,10 @@ inline void report_tab() {
         ImGui::TableNextColumn();
         size_t colon = line.find(": ");
         std::string value;
-        if (starts_with(line, "OK ") || starts_with(line, "MISSING ") || starts_with(line, "MISMATCH ")) {
+        if (starts_with(line, "OK ") || starts_with(line, "UPDATED ") || starts_with(line, "MISSING ") ||
+            starts_with(line, "MISMATCH ")) {
             size_t sp = line.find(' ');
-            ImVec4 c = line[0] == 'O' ? col_ok : line[3] == 'S' ? col_bad : col_warn;
+            ImVec4 c = line[0] == 'O' || line[0] == 'U' ? col_ok : line[3] == 'S' ? col_bad : col_warn;
             ImGui::TextColored(c, "%s", line.substr(0, sp).c_str());
             value = line.substr(line.find_first_not_of(' ', sp));
         } else if (line[0] != ' ' && colon != std::string::npos && colon < 30) {

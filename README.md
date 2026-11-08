@@ -112,13 +112,10 @@ Common problems:
 | The QR code doesn't appear or expires | Run the installer again; it shows a fresh one. |
 | Black screen on first start | Wait a few minutes: shaders are being built. |
 | It stops right after starting | A dialog points to the log; run Collect Diagnostics and share the zip. |
-<<<<<<< HEAD
-| Very slow | Lower graphics settings; close other apps; 16 GB of memory is recommended (on 8 GB, see [low-memory mode](#8-gb-macs-low-memory-mode)). |
-=======
 | The launcher closes at once; its log says *cannot create the Direct3D 12 pipeline* | ReSkate 2.0.4 and later can't draw the launcher under D3DMetal. Double-click **Downgrade ReSkate to 2.0.3.command**. |
-| Very slow | Lower graphics settings; close other apps; 16 GB of memory is recommended. |
->>>>>>> 8a6323c (fix: see issues #15 and #14)
-| Game speed jumps between slow motion and fast, worst on custom maps | A known ReSkate slowdown under Wine; a fix is being worked on. |
+| Very slow | Lower graphics settings; close other apps; 16 GB of memory is recommended (on 8 GB, see [low-memory mode](#8-gb-macs-low-memory-mode)). |
+| Game runs in slow motion, or its speed jumps between slow and fast (worst on custom maps) | Run the installer again: it installs a fix (`msimg32.dll` next to `Skate.exe`, see [how it works](#how-it-works-and-the-parts-it-uses)). Also set the frame-rate limit to 60. |
+| Crash at launch, log says *page fault on read access to 0000000000000041* | Run the installer again (same fix). |
 | Mods page never finishes merging | Disable `FAKIE-All_Skate_3_Cosmetics_almost` (v0.5.3 is known to hang the merge). |
 
 For detailed Wine logs, start it from Terminal with
@@ -148,6 +145,7 @@ and asks before deleting the game files (about 14 GB) or the logs.
 | Visual C++ runtime | Microsoft (`aka.ms/vs/17/release/vc_redist.x64.exe`) | Microsoft's current release |
 | ReSkate launcher and runtime | [ReSkate releases](https://github.com/Dingo-Shenanigans/ReSkate/releases) | latest, checked against its `launcher.json` |
 | Game build | Steam app 3354750, depot 3354751 | the manifest ReSkate's `launcher.json` names |
+| `msimg32.dll` stand-in | [`shim/`](shim/msimg32.c) in this repository, from [AUstnnnnnn's fix](https://github.com/ValveTextureFile/reskatem/issues/1). It loads with ReSkate and makes its reads of game memory fast under Wine (the cause of slow motion), and swaps the BCrypt pseudo-handles that crash this Wine for real ones | built from source here (`shim/build.sh`) |
 
 Apple's licence for the Game Porting Toolkit allows D3DMetal to be redistributed **for non-commercial
 purposes only**; this project is free and must stay that way. Apple's licence covers developing, testing and

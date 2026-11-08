@@ -35,15 +35,18 @@ struct KnownProblem {
 inline const KnownProblem known_problems[] = {
     {"cannot create the Direct3D 12 pipeline", "The launcher can't draw its window (ReSkate 2.0.4+ under D3DMetal)",
      "Its new HDR shader doesn't build under Game Porting Toolkit. Run \"Downgrade ReSkate to 2.0.3.command\"; the fix is Dingo-Shenanigans/ReSkate#177."},
-    {"Unhandled page fault on read access to 0000000000000041", "ReSkate's crash uploader faulted (BCryptHash under GPTK's Wine)",
-     "Usually follows another error, so look for that first. RESKATE_CRASH_REPORTING=0 stops it (reskatem issue #1)."},
+    {"Unhandled page fault on read access to 0000000000000041", "ReSkate hashed with a BCrypt pseudo-handle (BCryptHash under GPTK's Wine)",
+     "The crash uploader (RESKATE_CRASH_REPORTING=0) or, since ReSkate 2.1.3, the Music extension. The msimg32.dll "
+     "stand-in fixes both: check it is not MISSING in the report (reskatem issues #1, #16)."},
+    {"MISSING  msimg32.dll stand-in", "The game speed and BCrypt fix is not installed",
+     "Run the installer again; without it the game can run in slow motion and ReSkate 2.1.3+ crashes at launch."},
     {"Failed to dlopen D3DMetal", "macOS is older than 15.4", "D3DMetal 3.0 needs macOS 15.4 or newer: update macOS."},
     {"Please update your AMD Radeon driver", "skate. failed its AMD driver check",
      "WINEDLLOVERRIDES is missing atiadlxx=d; run the installer again to refresh the launch scripts."},
     {"Rosetta 2: NOT installed", "Rosetta 2 is missing", "Run the installer again; it installs Rosetta."},
     {"\nMISSING ", "Part of the install is missing", "Run the installer again; finished steps are skipped and missing parts repaired."},
-    {"\nMISMATCH ", "ReSkate's files aren't the version the installer recorded",
-     "Usually the launcher updated itself; check the Launcher tab. Run the installer again if it misbehaves."},
+    {"\nMISMATCH ", "ReSkate's files aren't the build their version should be",
+     "Same version as the installer recorded, other contents: run the installer again. (Older zips also list ReSkate's own updates here.)"},
 };
 
 inline Diagnostics g_diag;

@@ -127,6 +127,8 @@ download() {
 
 # Reads a value from a JSON file with plutil (part of macOS, no extra tools): json_get FILE key.path
 json_get() { plutil -extract "$2" raw -o - "$1" 2>/dev/null; }
+# The FileVersion in a Windows program's version resource (ReSkate's say what release they are, e.g. 2.1.4-2).
+pe_version() { perl -0777 -ne 'print $1 =~ s/\0//gr if /F\0i\0l\0e\0V\0e\0r\0s\0i\0o\0n\0\0\0(?:\0\0)?((?:[ -~]\0)+)/' "$1" 2>/dev/null; }
 
 free_gb() { df -g "$1" | awk 'NR==2 {print $4}'; }
 
@@ -145,11 +147,16 @@ game_dir() {
 # RESKATE_CRASH_REPORTING=0: ReSkate's crash uploader hashes with BCRYPT_SHA256_ALG_HANDLE, a pseudo-handle
 # (0x41) that this Wine's BCryptHash treats as a pointer, so it faults; ReSkate 1.1.5 dies at launch from it.
 # https://github.com/ValveTextureFile/reskatem/issues/1
+# msimg32=n,b: the msimg32.dll stand-in the installer puts next to Skate.exe (shim/msimg32.c). It loads with
+# ReSkate.dll and fixes two things in its imports: ReadProcessMemory on the game itself becomes a plain copy
+# instead of a slow wineserver round trip (the cause of slow-motion game speed), and BCrypt pseudo-handles are
+# swapped for real ones (ReSkate 2.1.3+ also hashes with them in its Music extension, which no setting stops).
+# https://github.com/ValveTextureFile/reskatem/issues/1 https://github.com/ValveTextureFile/reskatem/issues/16
 wine_env() {
     export WINEPREFIX="$PREFIX_DIR"
     export WINEESYNC=1
     export ROSETTA_ADVERTISE_AVX=1
-    export WINEDLLOVERRIDES="atiadlxx=d"
+    export WINEDLLOVERRIDES="atiadlxx=d;msimg32=n,b"
     export RESKATE_STARTUP_COMMANDS="${RESKATE_STARTUP_COMMANDS:-perf gi 60;perf meshtree 1}"
     export RESKATE_CRASH_REPORTING=0
     if [ "${RESKATEM_DEBUG:-0}" = 1 ]; then export WINEDEBUG="+err,+warn,+loaddll"; else export WINEDEBUG="-all"; fi
